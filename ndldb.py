@@ -3,6 +3,7 @@
 # File format defined in sr24/sr24_doc.pdf.
 
 import codecs
+import logging
 import os.path
 import re
 import time
@@ -269,7 +270,6 @@ def populate_db(conn, path):
 
 
 if __name__ == '__main__':
-    import logging
     from optparse import OptionParser
     import sqlite3
     import sys

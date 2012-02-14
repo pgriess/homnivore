@@ -111,6 +111,20 @@ def parse_quantity(s):
     raise Exception('Unknown input format for quantity')
 
 
+def parse_ingredient(s):
+    '''
+    Parse an ingredient specification into an ((type, value), ingredient)
+    tuple.
+
+    The (type, value) tuple is just like that given in the first element of the
+    parse_quantity() return value. The 'ingredient' value is a string
+    indicating our best guess as to the ingredient in question.
+    '''
+
+    q, r = parse_quantity(s)
+    return (q, s[r[1]:].strip())
+
+
 class _NumericQuantityTestCase(unittest.TestCase):
 
     def test_simple(self):
@@ -148,9 +162,9 @@ class _QuantityTestCase(unittest.TestCase):
         self.assertEquals((0, 6), r)
 
     def test_volume(self):
-        q, r = parse_quantity('1 cup of chicken broth')
-        self.assertEquals((VOLUME, VOLUME_CONSTANTS['cup']), q)
-        self.assertEquals((0, 5), r)
+        q, r = parse_quantity(u'1 \u215D cups of chicken broth')
+        self.assertEquals((VOLUME, 1.625 * VOLUME_CONSTANTS['cup']), q)
+        self.assertEquals((0, 8), r)
 
         q, r = parse_quantity(u'\u00bc tsp of chicken broth')
         self.assertEquals((VOLUME, 0.25 * VOLUME_CONSTANTS['tsp']), q)
