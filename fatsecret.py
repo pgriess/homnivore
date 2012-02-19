@@ -4,6 +4,7 @@ Wrapper around the FatSecret REST API
 http://platform.fatsecret.com/api/
 '''
 
+import json
 import oauth2
 import urllib
 
@@ -16,19 +17,22 @@ class FatSecret(object):
 
     def __getattr__(self, name):
         def wrapper_f(**kwargs):
-            kwargs['method'] = name.replace('_', '.')
+            kwargs.update({
+                'method': name.replace('_', '.'),
+                'format': 'json'})
 
-            return self.oaClient.request(
+            head, body = self.oaClient.request(
                 uri=self._REST_ENDPOINT,
                 method='POST',
                 body=urllib.urlencode(kwargs))
+            
+            return json.loads(body)
 
         return wrapper_f
 
 
 if __name__ == '__main__':
     from optparse import OptionParser
-    import json
     import sys
 
     op = OptionParser(
@@ -55,7 +59,6 @@ written to stderr as a JSON object.''')
     data = json.loads(''.join(sys.stdin.readlines()))
 
     fs = FatSecret(consumerKey, secretKey)
-    head, body = getattr(fs, method)(format='json', **data)
+    body = getattr(fs, method)(**data)
 
-    print >> sys.stderr, json.dumps(head)
-    print body
+    print json.dumps(body)
