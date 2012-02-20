@@ -365,6 +365,8 @@ specified are to be used for the FatSecret API.''')
         help='write to the specified file (default: %default)')
     op.add_option('-v', dest='verbosity', action='count', default=0,
         help='increase verbosity; can be used multiple times')
+    op.add_option('-s', dest='servings', type='int', default=1,
+        help='divide nutrition into the servings (default: %default)')
     
     opts, args = op.parse_args()
 
@@ -422,4 +424,7 @@ specified are to be used for the FatSecret API.''')
                 (k, n.get(k, 0.0) + nutrition.get(k, 0.0)) \
                     for k in set(n.keys() + nutrition.keys()))
 
+    # Scale by servings
+    nutrition = dict(
+        (k, v / opts.servings) for k, v in nutrition.iteritems())
     print >> ostream, json.dumps(nutrition)
