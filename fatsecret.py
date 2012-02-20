@@ -45,6 +45,35 @@ class FatSecretError(Exception):
         self.message = message
 
 
+def units_for_nutrient(n):
+    '''
+    Get the units for the given nutrient.
+
+    FatSecret APIs don't return the units in their nutrient results. They seem
+    to be hard-coded and specific to each nutrient.
+    '''
+
+    nutrients = {
+        'calories': 'Calories',
+        'fat': 'g',
+        'saturated_fat': 'g',
+        'polyunsaturated_fat': 'g',
+        'monounsaturated_fat': 'g',
+        'cholesterol': 'mg',
+        'sodium': 'mg',
+        'potassium': 'mg',
+        'carbohydrate': 'g',
+        'fiber': 'g',
+        'sugar': 'g',
+        'protein': 'g',
+        'vitamin_a': '%',
+        'vitamin_c': '%',
+        'calcium': '%',
+        'iron': '%'}
+
+    return nutrients.get(n, None)
+
+
 if __name__ == '__main__':
     from optparse import OptionParser
     import sys
