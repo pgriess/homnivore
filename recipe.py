@@ -20,6 +20,20 @@
 #
 #   - Everything else is considered a search term for the ingredient. The first
 #     result is selected.
+#
+# Problems:
+#
+#   o Ounces can be either volume or weight. How do we know which? Maybe 
+#     volume should always be floz?
+#
+#   o Sometimes singleton units don't come with a numeric prefix: e.g. 'tsp
+#     chicken broth'
+#
+#   o Some units are physical ('1 whole chicken', '1 bay leaf', etc).
+#
+#   o Some searches return a bunch of identically-named hits. Maybe the
+#     brands differ? Does it matter which one we pick?
+
 
 from fatsecret import FatSecret
 import logging
@@ -89,7 +103,10 @@ VOLUME_CONSTANTS = {
     'ozs': 29.57,
     'ozs.': 29.57,
     'ounce': 29.57,
-    'ounces': 29.57}
+    'ounces': 29.57,
+
+    # Let's call it 1/25 of a tsp
+    'dash': 0.2}
 
 def parse_numeric_quantity(s):
     '''
@@ -142,7 +159,7 @@ def parse_quantity(s):
     RE = re.compile(r'\s*(([a-zA-Z]+[a-rt-zA-RT-Z])[\.s]{0,2})\s*', re.UNICODE)
     m = RE.match(s, nr[1])
     if m:
-        unit = m.group(2)
+        unit = m.group(2).lower()
         if unit in MASS_CONSTANTS:
             q = ('g', nv * MASS_CONSTANTS[unit])
         elif unit in VOLUME_CONSTANTS:
@@ -178,7 +195,7 @@ def parse_ingredient(s):
     return (q, s[r[1]:].strip())
 
 
-def get_food_nutrition(unit, value, food_id):
+def get_food_nutrition(unit, value, food_id, fs):
     '''
     Return a dictionary of nutrition information for the given quantity a of
     the food described by food_id. If no suitable conversion could be found,
@@ -195,7 +212,7 @@ def get_food_nutrition(unit, value, food_id):
     def convert_units(s_unit, s_val):
         if s_unit in MASS_CONSTANTS and unit in MASS_CONSTANTS:
             u_val = MASS_CONSTANTS[s_unit] * s_val
-            q_val = MASS_CONSTANTS[q[0]] * value
+            q_val = MASS_CONSTANTS[unit] * value
             return q_val / u_val
 
         if s_unit in VOLUME_CONSTANTS and unit in VOLUME_CONSTANTS:
@@ -246,6 +263,13 @@ def get_food_nutrition(unit, value, food_id):
             # they're equal (e.g. 'medium') and go with it.
             if scale_val == None and s_unit == unit:
                 scale_val = value / s_val
+
+        # Finally, sometimes, the units in measurement_description are not the
+        # same as those in serving_description. Try the latter just in case.
+        if scale_val == None:
+            q, _ = parse_quantity(serv['serving_description'])
+            s_unit, s_val = q
+            scale_val = convert_units(s_unit, s_val)
 
         if scale_val == None:
             return None
@@ -414,7 +438,7 @@ specified are to be used for the FatSecret API.''')
             choice = int(sys.stdin.readline().strip())
             food_id = foods[choice]['food_id']
 
-        n = get_food_nutrition(unit, value, food_id)
+        n = get_food_nutrition(unit, value, food_id, fs)
         logging.info(pprint.pformat(n))
 
         if nutrition == None:

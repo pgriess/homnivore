@@ -54,7 +54,7 @@ def units_for_nutrient(n):
     '''
 
     nutrients = {
-        'calories': 'Calories',
+        'calories': 'kcal',
         'fat': 'g',
         'saturated_fat': 'g',
         'polyunsaturated_fat': 'g',
