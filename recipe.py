@@ -208,15 +208,18 @@ def get_food_nutrition(unit, value, food_id):
     def scale_serving(serv):
         scale_val = None
 
-        def scale_ingredient(k, v):
-            try:
-                if not k.endswith('_id'):
-                    return (k, float(v) * scale_val)
-                else:
-                    return (k, v)
-            except ValueError:
-                return (k, v)
+        def filter_ingredient(i):
+            k, v = i
 
+            try:
+                if k.endswith('_id'):
+                    return False
+
+                v = float(v)
+                return True
+            except ValueError:
+                return False
+        
         # Prefer metric serving units that we can convert between eachother.
         # For example, grams to oz, etc. This is the mostly directly comparable
         # and fool-proof computation.
@@ -248,7 +251,10 @@ def get_food_nutrition(unit, value, food_id):
             return None
 
         # Scale the nutritional information by our scaling factor
-        return dict([scale_ingredient(k, v) for k, v in serv.iteritems()])
+        return dict(
+            map(
+                lambda x: (x[0], float(x[1]) * scale_val),
+                filter(filter_ingredient, serv.iteritems())))
 
     food = fs.food_get(food_id=food_id)
     servings = food['food']['servings']['serving']
@@ -344,6 +350,7 @@ class _NutritionTestCase(unittest.TestCase):
 
 if __name__ == '__main__':
     import codecs
+    import json
     from optparse import OptionParser
     import sys
 
@@ -383,6 +390,7 @@ specified are to be used for the FatSecret API.''')
 
     fs = FatSecret(consumerKey, secretKey)
 
+    nutrition = None
     for l in istream.readlines():
         q, i = parse_ingredient(l)
         unit, value = q
@@ -396,7 +404,7 @@ specified are to be used for the FatSecret API.''')
         if opts.infile == '-' or opts.outfile == '-':
             food_id = foods[0]['food_id']
         else:
-            print i
+            print l.strip()
 
             for i in range(len(foods)):
                 print '[%d] %s' % (i, foods[i]['food_name'])
@@ -406,3 +414,12 @@ specified are to be used for the FatSecret API.''')
 
         n = get_food_nutrition(unit, value, food_id)
         logging.info(pprint.pformat(n))
+
+        if nutrition == None:
+            nutrition = n
+        else:
+            nutrition = dict(
+                (k, n.get(k, 0.0) + nutrition.get(k, 0.0)) \
+                    for k in set(n.keys() + nutrition.keys()))
+
+    print >> ostream, json.dumps(nutrition)
