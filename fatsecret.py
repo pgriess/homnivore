@@ -26,9 +26,23 @@ class FatSecret(object):
                 method='POST',
                 body=urllib.urlencode(kwargs))
             
-            return json.loads(body)
+            body = json.loads(body)
+
+            if 'error' in body:
+                raise FatSecretError(
+                    code=body['error']['code'],
+                    message=body['error']['message'])
+
+            return body
 
         return wrapper_f
+
+
+class FatSecretError(Exception):
+    
+    def __init__(self, code, message):
+        self.code = code
+        self.message = message
 
 
 if __name__ == '__main__':
