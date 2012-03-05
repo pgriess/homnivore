@@ -104,6 +104,13 @@ VOLUME_CONSTANTS = {
     'ozs.': 29.57,
     'ounce': 29.57,
     'ounces': 29.57,
+    'floz': 29.57,
+    'floz.': 29.57,
+    'flozs': 29.57,
+    'flozs.': 29.57,
+    'fl oz': 29.57,
+    'fl. oz.': 29.57,
+    'pint': 473.18,
 
     # Let's call it 1/25 of a tsp
     'dash': 0.2}
@@ -127,6 +134,19 @@ def parse_numeric_quantity(s):
         v = UNICODE_VULGAR_FRACTIONS[gd['fraction']]
         if gd['digits']:
             v += float(gd['digits'])
+
+        return (v, m.span())
+
+    # Matches '1 1/4'
+    FRACTION_RE = re.compile(r'\s*(\d+\s+)?(\d+\s*\/\s*\d+)\b', re.UNICODE)
+    m = FRACTION_RE.match(s)
+    if m:
+        v = 0.0
+        if m.group(1):
+            v += float(m.group(1))
+
+        n, d = re.split(r'\s*\/\s*', m.group(2))
+        v += float(n) / float(d)
 
         return (v, m.span())
 
@@ -156,7 +176,7 @@ def parse_quantity(s):
     # from matching a trailing '.'. Also we are careful not to allow a trailing
     # 's' character on our unit so that if there is one, it gets consumed by
     # the pluralization/abbreviation class at the end.
-    RE = re.compile(r'\s*(([a-zA-Z]+[a-rt-zA-RT-Z])[\.s]{0,2})\s*', re.UNICODE)
+    RE = re.compile(r'\s*(([a-zA-Z]*[a-rt-zA-RT-Z])[\.s]{0,2})\s*', re.UNICODE)
     m = RE.match(s, nr[1])
     if m:
         unit = m.group(2).lower()
@@ -169,7 +189,8 @@ def parse_quantity(s):
 
         return (q, (nr[0], m.end(1)))
 
-    raise Exception('Unknown input format for quantity: ' + s[nr[1]:])
+    raise Exception('Unknown input format for quantity from string ' \
+        '"%s" at offset %d ' % (s, nr[1]))
 
 
 def parse_ingredient(s):
