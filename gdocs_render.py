@@ -2,6 +2,22 @@
 #
 # One-off rendering script to render information in the format that I currently
 # want it in GDocs. Probably not worth checking in.
+#
+# Some ideas:
+#
+#   - Allow interactive skipping of ingredient (if we can't find a good match
+#     or don't care about it)
+#
+#   - Allow interactive editing of line if it doesn't parse or we don't find a
+#     match, including explicitly setting ingredient to search for and amount
+#
+#   - Allow paging backwards in results list
+#
+#   - Display nutrient information % breakdown at the end by nutrient, not
+#     ingredient, sorted by contribution
+#
+#   - A 3.5 lb chicken is massively over-counted, as the weight of the bones
+#     and other disposables are being considered meat/edibles.
 
 import codecs
 import fatsecret
@@ -15,7 +31,7 @@ import sys
 
 op = OptionParser(
     usage='''%prog [options] <consumer key> <secret key> <ingredients-file>
-                                 <servings>''',
+<servings>''',
     description='''Read ingredients interactively on stdin (presenting a menu
 for clarification in some places and finally write a Nutrition: ... line
 to stdout when we're done.''')
@@ -165,4 +181,6 @@ def render_nutrient(n):
 
     return '%.1f%s %s' % (val, units, name)
 
-print 'Nutrition: %s' % ', '.join(render_nutrient(n) for n in nutrient_order)
+print 'Nutrition: %s' % \
+    ', '.join(render_nutrient(n) for n in \
+        filter(lambda x: x in total_nutrients, nutrient_order))
