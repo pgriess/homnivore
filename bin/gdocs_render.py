@@ -20,14 +20,18 @@
 #     and other disposables are being considered meat/edibles.
 
 import codecs
-import fatsecret
 import logging
 from optparse import OptionParser
+import os
 import pprint
 import re
-import recipe
 import sys
 
+sys.path += [
+    os.path.join(os.path.dirname(sys.modules[__name__].__file__), '..', 'lib')]
+
+import fatsecret
+import recipe
 
 op = OptionParser(
     usage='''%prog [options] <consumer key> <secret key> <ingredients-file>
