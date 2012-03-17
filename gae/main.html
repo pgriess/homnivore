@@ -1,0 +1,33 @@
+<html>
+    <head>
+        <title>Recipe monger</title>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script>
+            var go = function() {
+                $("#scrapeframe").attr(
+                    "src",
+                    "/api/scrape?url=" + encodeURI($("#urlbox").val()));
+            };
+
+            var done = function(r) {
+                alert("got recipe: " + r.title);
+            };
+        </script>
+    </head>
+
+    <body>
+        <div style="text-align: center">
+            <input type="text" size="60" id="urlbox"/>
+            <input type="button" value="Go" onclick="javascript:go();"/>
+        </div>
+
+        <!--
+        Hidden iframe that we use to scrape the requested page without
+        displaying it to the user. Do this in the browser so that we can run
+        JavaScript and don't have to worry (as much) about resource utilization
+        on the server.
+        -->
+        <iframe style="display: none; visibility: hidden" id="scrapeframe"/>
+    </body>
+</html>
