@@ -5,29 +5,42 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
         <script>
             var go = function() {
-                $("#scrapeframe").attr(
-                    "src",
-                    "/api/scrape?url=" + encodeURI($("#urlbox").val()));
-            };
+                var url = "/api/scrape?url=" + encodeURI($("#urlbox").val());
 
-            var done = function(r) {
-                alert("got recipe: " + r.title);
+                $("button").attr("disalbed", "disabled");
+                $("#urlbox").attr("disabled", "disabled");
+
+                $.ajax(url, {
+                    dataType: "json",
+                    success: function(obj, status) {
+                        $("#recipe").append("<h2>" + obj.title + "</h2>");
+
+                        var ingredients = "<h3>Ingredients</h3>";
+                        ingredients += "<ul>";
+                        obj.ingredients.forEach(function(i) {
+                            ingredients += "<li>" + i + "</li>";
+                        });
+                        ingredients += "</ul>";
+                        $("#recipe").append(ingredients);
+
+                        var steps = "<h3>Preparation</h3>";
+                        steps += "<ol>";
+                        obj.steps.forEach(function(s) {
+                            steps += "<li>" + s + "</li>";
+                        });
+                        steps += "</ol>";
+                        $("#recipe").append(steps);
+                    }});
             };
         </script>
     </head>
 
     <body>
         <div style="text-align: center">
-            <input type="text" size="60" id="urlbox"/>
-            <input type="button" value="Go" onclick="javascript:go();"/>
+            <input type="text" id="urlbox" style="font-size: 18pt; width: 60%"/>
+            <button style="font-size: 18pt" onclick="javascript:go();">Go</input>
         </div>
 
-        <!--
-        Hidden iframe that we use to scrape the requested page without
-        displaying it to the user. Do this in the browser so that we can run
-        JavaScript and don't have to worry (as much) about resource utilization
-        on the server.
-        -->
-        <iframe style="display: none; visibility: hidden" id="scrapeframe"/>
+        <div id="recipe"/>
     </body>
 </html>

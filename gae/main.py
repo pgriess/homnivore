@@ -1,6 +1,8 @@
 import jinja2
+import json
 from lxml import etree
 import os
+import re
 import urllib2
 import webapp2
 
@@ -27,53 +29,34 @@ class ScrapeHandler(webapp2.RequestHandler):
         parser = etree.HTMLParser()
         tree = etree.parse(result, parser)
 
-        # Remove all JavaScript
-        #
-        # XXX: What about onload and the like?
-        for e in tree.xpath('//script'):
-            e.clear()
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.out.write(
+            json.dumps(self.scrape_myrecipes(tree)))
 
-        # Insert our own JavaScript
-        #
-        # XXX: Be way less clowny. This only works on myrecipes.com, and even
-        #      then it probably doesn't work for all the recipes.
-        h = tree.xpath('//head')[0]
-        etree.SubElement(h, 'script',
-            src='https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js')
-        s = etree.SubElement(h, 'script')
-        s.text = '''
-    $(document).ready(function() {
-        var result = {}
+    def scrape_myrecipes(self, tree):
+        recipe = {}
 
-        var title = $("title").text();
-        title = title.substring(0, title.length - " | MyRecipes.com".length);
-        result.title = title;
+        title = tree.xpath('//head/title')[0].text
+        title = title[:len(title) - len(' Recipe | MyRecipes.com')]
+        recipe['title'] = title
 
-        result.ingredients = Array();
-        $("li[itemprop=\\"ingredient\\"]").each(function(idx, elt) {
-            var ingredient = 
-                $("span[itemprop=\\"amount\\"]", elt).text() + " " +
-                $("span[itemprop=\\"name\\"]", elt).text() + " " +
-                $("span[itemprop=\\"preparation\\"]", elt).text();
-            ingredient = ingredient.trim();
-            ingredient = ingredient.replace(/\s+/g, " ");
+        recipe['ingredients'] = []
+        for e in tree.xpath('//li[@itemprop="ingredient"]'):
+            ingredient = \
+                e.xpath('span[@itemprop="amount"]')[0].text + ' ' + \
+                e.xpath('span[@itemprop="name"]')[0].text + ' ' + \
+                e.xpath('span[@itemprop="preparation"]')[0].text
+            ingredient = ingredient.strip()
+            ingredient = re.sub(r'\s+', ' ', ingredient)
 
-            result.ingredients.push(ingredient);
-        });
+            recipe['ingredients'] += [ingredient]
 
-        result.steps = Array();
-        $("ol[itemprop=\\"instructions\\"] li").each(function(idx, elt) {
-            var step = $(elt).text();
-            step = step.replace(/^\d+\.\s+/, "");
+        recipe['steps'] = []
+        for e in tree.xpath('//ol[@itemprop="instructions"]/li'):
+            recipe['steps'] += [
+                re.sub(r'^\d+\.\s+', '', e.text, flags=re.UNICODE)]
 
-            result.steps.push(step);
-        });
-
-        top.done(result);
-    });
-'''
-
-        self.response.out.write(etree.tostring(tree))
+        return recipe
 
 app = webapp2.WSGIApplication([
         ('/', MainHandler),
