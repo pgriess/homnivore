@@ -56,6 +56,9 @@ class ScrapeHandler(webapp2.RequestHandler):
             recipe['steps'] += [
                 re.sub(r'^\d+\.\s+', '', e.text, flags=re.UNICODE)]
 
+        for e in tree.xpath('//img[@alt="%s Recipe"]' % title):
+            recipe['image'] = e.attrib['src']
+
         return recipe
 
 app = webapp2.WSGIApplication([
