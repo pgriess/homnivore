@@ -30,8 +30,8 @@ import sys
 sys.path += [
     os.path.join(os.path.dirname(sys.modules[__name__].__file__), '..', 'lib')]
 
-import fatsecret
-import recipe
+from homnivore import fatsecret
+from homnivore import recipe
 
 op = OptionParser(
     usage='''%prog [options] <consumer key> <secret key> <ingredients-file>
