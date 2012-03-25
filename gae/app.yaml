@@ -12,6 +12,7 @@ libraries:
 
 handlers:
 - url: /.*
+  login: required
   script: main.app
 
 # vim: ts=4 sw=4

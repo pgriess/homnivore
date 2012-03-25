@@ -4,6 +4,9 @@
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
         <script>
+            // The current recipe
+            var recipe = null;
+
             var go = function() {
                 var url = "/api/scrape?url=" + encodeURI($("#urlbox").val());
 
@@ -13,6 +16,8 @@
                 $.ajax(url, {
                     dataType: "json",
                     success: function(obj, status) {
+                        recipe = obj;
+
                         $("#recipe").append("<h2>" + obj.title + "</h2>");
 
                         $("#recipe").append('<img src="' + obj.image + '"/>');
@@ -32,7 +37,16 @@
                         });
                         steps += "</ol>";
                         $("#recipe").append(steps);
+
+                        $("#recipe").append("<button onclick=\"javascript: add();\">Add</button>");
                     }});
+            };
+
+            var add = function() {
+                $.ajax("/api/add", {
+                    type: "POST",
+                    data: {recipe: JSON.stringify(recipe)},
+                    dataType: "json"});
             };
         </script>
     </head>
@@ -40,7 +54,7 @@
     <body>
         <div style="text-align: center">
             <input type="text" id="urlbox" style="font-size: 18pt; width: 60%"/>
-            <button style="font-size: 18pt" onclick="javascript:go();">Go</input>
+            <button style="font-size: 18pt" onclick="javascript:go();">Go</button>
         </div>
 
         <div id="recipe"/>

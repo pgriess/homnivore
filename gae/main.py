@@ -1,3 +1,5 @@
+from google.appengine.api import users
+from google.appengine.ext import db
 import jinja2
 import json
 from lxml import etree
@@ -6,23 +8,48 @@ import re
 import urllib2
 import webapp2
 
+
+class Recipe(db.Model):
+    user_id = db.StringProperty(required=True)
+    url = db.StringProperty(required=True)
+    title = db.StringProperty(required=True)
+    ingredients = db.StringListProperty(required=True)
+    steps = db.StringListProperty(required=True)
+    image = db.StringProperty(required=False)
+
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         t = jinja_env.get_template('main.html')
         self.response.out.write(t.render({}))
 
+
+class AddHandler(webapp2.RequestHandler):
+    '''
+    API handler that adds a recipe described by a JSON blob.
+    '''
+
+    def post(self):
+        recipe_json = json.loads(self.request.get('recipe'))
+        recipe = Recipe(
+            user_id=users.get_current_user().user_id(),
+            url=recipe_json['url'],
+            title=recipe_json['title'],
+            ingredients=recipe_json['ingredients'],
+            steps=recipe_json['steps'],
+            image=recipe_json['image'])
+        recipe.put()
+
+
 class ScrapeHandler(webapp2.RequestHandler):
     '''
-    API that fetches a URL to be scraped and returns its HTML, munged such that
-    original JavaScript is expunged and our own JavaScript inserted to do the
-    actual scraping.
-
-    The result of the scrape is poked into the parent window's 'result' object.
-    I am a terrible human being.
+    API handler that scrapes a URL and returns the found recipe as a JSON blob.
     '''
 
     def get(self):
         url = self.request.get('url')
+
+        recipe = {'url': url}
 
         # Fetch the URL and construct an LXML tree
         result = urllib2.urlopen(url)
@@ -31,11 +58,9 @@ class ScrapeHandler(webapp2.RequestHandler):
 
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(
-            json.dumps(self.scrape_myrecipes(tree)))
+            json.dumps(self.scrape_myrecipes(recipe, tree)))
 
-    def scrape_myrecipes(self, tree):
-        recipe = {}
-
+    def scrape_myrecipes(self, recipe, tree):
         title = tree.xpath('//head/title')[0].text
         title = title[:len(title) - len(' Recipe | MyRecipes.com')]
         recipe['title'] = title
@@ -63,7 +88,8 @@ class ScrapeHandler(webapp2.RequestHandler):
 
 app = webapp2.WSGIApplication([
         ('/', MainHandler),
-        ('/api/scrape', ScrapeHandler)],
+        ('/api/scrape', ScrapeHandler),
+        ('/api/add', AddHandler)],
     debug=True)
 
 jinja_env = jinja2.Environment(
