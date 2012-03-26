@@ -1,21 +1,11 @@
 from google.appengine.api import users
 from google.appengine.ext import db
+from homnivore.models import Recipe
+from homnivore.scrape import scrape
 import jinja2
 import json
-from lxml import etree
 import os
-import re
-import urllib2
 import webapp2
-
-
-class Recipe(db.Model):
-    user_id = db.StringProperty(required=True)
-    url = db.StringProperty(required=True)
-    title = db.StringProperty(required=True)
-    ingredients = db.StringListProperty(required=True)
-    steps = db.StringListProperty(required=True)
-    image = db.StringProperty(required=False)
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -30,14 +20,13 @@ class AddHandler(webapp2.RequestHandler):
     '''
 
     def post(self):
-        recipe_json = json.loads(self.request.get('recipe'))
-        recipe = Recipe(
-            user_id=users.get_current_user().user_id(),
-            url=recipe_json['url'],
-            title=recipe_json['title'],
-            ingredients=recipe_json['ingredients'],
-            steps=recipe_json['steps'],
-            image=recipe_json['image'])
+        recipe = Recipe.from_json(self.request.get('recipe'))
+       
+        # Make sure nobody tries to write to someone else's stream
+        if recipe.user_id != users.get_current_user().user_id():
+            self.error(400)
+            return
+
         recipe.put()
 
 
@@ -49,42 +38,11 @@ class ScrapeHandler(webapp2.RequestHandler):
     def get(self):
         url = self.request.get('url')
 
-        recipe = {'url': url}
-
-        # Fetch the URL and construct an LXML tree
-        result = urllib2.urlopen(url)
-        parser = etree.HTMLParser()
-        tree = etree.parse(result, parser)
+        recipe = scrape(url=url, user_id=users.get_current_user().user_id())
 
         self.response.headers['Content-Type'] = 'application/json'
-        self.response.out.write(
-            json.dumps(self.scrape_myrecipes(recipe, tree)))
+        self.response.out.write(recipe.to_json())
 
-    def scrape_myrecipes(self, recipe, tree):
-        title = tree.xpath('//head/title')[0].text
-        title = title[:len(title) - len(' Recipe | MyRecipes.com')]
-        recipe['title'] = title
-
-        recipe['ingredients'] = []
-        for e in tree.xpath('//li[@itemprop="ingredient"]'):
-            ingredient = \
-                e.xpath('span[@itemprop="amount"]')[0].text + ' ' + \
-                e.xpath('span[@itemprop="name"]')[0].text + ' ' + \
-                e.xpath('span[@itemprop="preparation"]')[0].text
-            ingredient = ingredient.strip()
-            ingredient = re.sub(r'\s+', ' ', ingredient)
-
-            recipe['ingredients'] += [ingredient]
-
-        recipe['steps'] = []
-        for e in tree.xpath('//ol[@itemprop="instructions"]/li'):
-            recipe['steps'] += [
-                re.sub(r'^\d+\.\s+', '', e.text, flags=re.UNICODE)]
-
-        for e in tree.xpath('//img[@alt="%s Recipe"]' % title):
-            recipe['image'] = e.attrib['src']
-
-        return recipe
 
 app = webapp2.WSGIApplication([
         ('/', MainHandler),
