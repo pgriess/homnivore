@@ -8,10 +8,12 @@ import os
 import webapp2
 
 
-class MainHandler(webapp2.RequestHandler):
+class ClipHandler(webapp2.RequestHandler):
     def get(self):
-        t = jinja_env.get_template('main.html')
-        self.response.out.write(t.render({}))
+        url = self.request.get('url')
+        recipe = scrape(url=url, user_id=users.get_current_user().user_id())
+        tmpl = jinja_env.get_template('clip.html')
+        self.response.out.write(tmpl.render({'recipe': recipe}))
 
 
 class AddHandler(webapp2.RequestHandler):
@@ -45,7 +47,7 @@ class ScrapeHandler(webapp2.RequestHandler):
 
 
 app = webapp2.WSGIApplication([
-        ('/', MainHandler),
+        ('/clip', ClipHandler),
         ('/api/scrape', ScrapeHandler),
         ('/api/add', AddHandler)],
     debug=True)
