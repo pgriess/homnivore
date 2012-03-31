@@ -1,7 +1,7 @@
 from ..scrape import scrape
 import unittest
 
-class ScrapTestCase(unittest.TestCase):
+class ScrapeTestCase(unittest.TestCase):
     def test_myrecipes_com(self):
         r = scrape(
             'http://www.myrecipes.com/recipe/beef-rendang-10000001963955/',
