@@ -8,6 +8,14 @@ import os
 import webapp2
 
 
+class ListHandler(webapp2.RequestHandler):
+    def get(self):
+        recipes = Recipe.all()
+        recipes.filter('user_id = ', users.get_current_user().user_id())
+        tmpl = jinja_env.get_template('list.html')
+        self.response.out.write(tmpl.render({'recipes': recipes}))
+
+
 class ClipHandler(webapp2.RequestHandler):
     def get(self):
         url = self.request.get('url')
@@ -47,6 +55,7 @@ class ScrapeHandler(webapp2.RequestHandler):
 
 
 app = webapp2.WSGIApplication([
+        ('/', ListHandler),
         ('/clip', ClipHandler),
         ('/api/scrape', ScrapeHandler),
         ('/api/add', AddHandler)],

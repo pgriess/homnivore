@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>{{ recipe['name'] }}</title>
+    <title>{{ recipe.name }}</title>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 
@@ -16,18 +16,18 @@
 
 <body>
     <img src="{{ recipe['image'] }}"/>
-    <h2>{{ recipe['name'] }}</h2>
+    <h2>{{ recipe.name }}</h2>
 
     <h3>Ingredients</h3>
     <ul>
-        {% for i in recipe['ingredients'] %}
+        {% for i in recipe.ingredients %}
             <li>{{ i }}</li>
         {% endfor %}
     </ul>
 
     <h3>Preparation</h3>
     <ol>
-        {% for s in recipe['steps'] %}
+        {% for s in recipe.steps %}
             <li>{{ s }}</li>
         {% endfor %}
     </ol>
