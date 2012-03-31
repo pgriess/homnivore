@@ -11,6 +11,12 @@ libraries:
   version: "2.3"
 
 handlers:
+- url: /css
+  static_dir: css
+
+- url: /js
+  static_dir: js
+
 - url: /.*
   login: required
   script: main.app
