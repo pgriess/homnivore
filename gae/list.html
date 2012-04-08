@@ -57,6 +57,18 @@
         {% endfor %}
     </div>
 
+    <div>
+    To make it easier to add recipes, create a bookmark in your browser's
+    toolbar with the URL set to the following <br/>
+
+        <code>
+            javascript:(function(){window.location = "{{ base_url }}/clip?url=" + window.location;})();
+        </code> <br/>
+    
+    ... then, to clip a new recipe that you're viewing in your browser, click
+    on the bookmark in your toolbar.
+    </div>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script src="js/bootstrap-transition.js"></script>
     <script src="js/bootstrap-alert.js"></script>

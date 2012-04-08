@@ -13,7 +13,9 @@ class ListHandler(webapp2.RequestHandler):
         recipes = Recipe.all()
         recipes.filter('user_id = ', users.get_current_user().user_id())
         tmpl = jinja_env.get_template('list.html')
-        self.response.out.write(tmpl.render({'recipes': recipes}))
+        self.response.out.write(tmpl.render({
+            'recipes': recipes,
+            'base_url': self.request.host_url}))
 
 
 class ClipHandler(webapp2.RequestHandler):
