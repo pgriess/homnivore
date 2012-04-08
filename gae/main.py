@@ -24,6 +24,14 @@ class ClipHandler(webapp2.RequestHandler):
         self.response.out.write(tmpl.render({'recipe': recipe}))
 
 
+class ViewHandler(webapp2.RequestHandler):
+    def get(self):
+        key = db.Key(self.request.get('id'))
+        recipe = Recipe.get(key)
+        tmpl = jinja_env.get_template('view.html')
+        self.response.out.write(tmpl.render({'recipe': recipe}))
+
+
 class AddHandler(webapp2.RequestHandler):
     '''
     API handler that adds a recipe described by a JSON blob.
@@ -57,6 +65,7 @@ class ScrapeHandler(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
         ('/', ListHandler),
         ('/clip', ClipHandler),
+        ('/view', ViewHandler),
         ('/api/scrape', ScrapeHandler),
         ('/api/add', AddHandler)],
     debug=True)

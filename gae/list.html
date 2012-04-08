@@ -44,9 +44,12 @@
                 <div class="row" style="margin-top: 15px">
             {% endif %}
 
-            <div class="span4">
-                <img src="{{ r.image }}"/>
-            </div>
+            <a href="/view?id={{ r.key() }}">
+                <div class="span4">
+                    <img src="{{ r.image }}"/> <br/>
+                    {{ r.name }}
+                </div>
+            </a>
 
             {% if loop.index0 == 2 or loop.last %}
                 </div>

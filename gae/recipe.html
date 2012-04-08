@@ -1,0 +1,16 @@
+<img src="{{ recipe['image'] }}"/>
+<h2>{{ recipe.name }}</h2>
+
+<h3>Ingredients</h3>
+<ul>
+    {% for i in recipe.ingredients %}
+        <li>{{ i }}</li>
+    {% endfor %}
+</ul>
+
+<h3>Preparation</h3>
+<ol>
+    {% for s in recipe.steps %}
+        <li>{{ s }}</li>
+    {% endfor %}
+</ol>
