@@ -1,3 +1,39 @@
 body {
-    padding-top: 60px;
+    font-family: Arial;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.heading {
+    margin-top: 30px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.list {
+    margin-top: 3px;
+    list-style-type: none;
+    margin-left: 8px;
+    padding-left: 8px;
+    font-size: 14px;
+}
+
+@media print {
+    .image {
+        display: none;
+    }
+}
+
+@media screen {
+    body {
+        padding-top: 60px;
+    }
+
+    .image {
+        float: right;
+    }
 }
