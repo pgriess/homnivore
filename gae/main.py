@@ -5,6 +5,7 @@ from homnivore.scrape import scrape
 import jinja2
 import json
 import os
+from urlparse import urlparse
 import webapp2
 
 
@@ -23,7 +24,9 @@ class ClipHandler(webapp2.RequestHandler):
         url = self.request.get('url')
         recipe = scrape(url=url, user_id=users.get_current_user().user_id())
         tmpl = jinja_env.get_template('clip.html')
-        self.response.out.write(tmpl.render({'recipe': recipe}))
+        self.response.out.write(tmpl.render({
+            'recipe': recipe,
+            'url': urlparse(url)}))
 
 
 class ViewHandler(webapp2.RequestHandler):

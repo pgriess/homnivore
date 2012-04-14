@@ -4,20 +4,34 @@
 
     <link href="less/homnivore.less" rel="stylesheet" type="text/less">
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    {% if recipe is not none %}
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
 
-    <script>
-        clipRecipe = function() {
-            $.ajax("/api/add", {
-                type: "POST",
-                data: {recipe: JSON.stringify({{ recipe.to_json() }})},
-                dataType: "json"});
-        };
-    </script>
+        <script>
+            clipRecipe = function() {
+                $.ajax("/api/add", {
+                    type: "POST",
+                    data: {recipe: JSON.stringify({{ recipe.to_json() }})},
+                    dataType: "json",
+                    success: function(jqXhr, status) {
+                        window.location = "/";
+                    },
+                    error: function(jqXhr, status, err) {
+                        // TODO: Man up
+                    });
+            };
+        </script>
+    {% endif %}
 </head>
 
 <body>
-    {% include "recipe.html" %}
-    <button onclick="javascript: clipRecipe();">Clip</button>
+    {% if recipe is not none %}
+        {% include "recipe.html" %}
+        <button onclick="javascript: clipRecipe();">Clip</button>
+    {% else %}
+        Sorry, we couldn't clip that recipe, probably because we don't
+        understand how to gather content from {{ url.hostname }}
+    {% endif %}
 </body>
 </html>
