@@ -4,6 +4,7 @@ from homnivore.models import Recipe
 from homnivore.scrape import scrape
 import jinja2
 import json
+import logging
 import os
 from urlparse import urlparse
 import webapp2
@@ -23,6 +24,8 @@ class ClipHandler(webapp2.RequestHandler):
     def get(self):
         url = self.request.get('url')
         recipe = scrape(url=url, user_id=users.get_current_user().user_id())
+        if not recipe:
+            logging.info('Failed to scrape ' + url)
         tmpl = jinja_env.get_template('clip.html')
         self.response.out.write(tmpl.render({
             'recipe': recipe,
@@ -62,6 +65,10 @@ class ScrapeHandler(webapp2.RequestHandler):
         url = self.request.get('url')
 
         recipe = scrape(url=url, user_id=users.get_current_user().user_id())
+        if not recipe:
+            logging.info('Failed to scrape ' + url)
+            self.error(400)
+            return
 
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(recipe.to_json())
