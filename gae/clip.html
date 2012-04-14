@@ -2,12 +2,9 @@
 <head>
     <title>{{ recipe.name }}</title>
 
-    <link href="less/homnivore.less" rel="stylesheet" type="text/less">
+    {% include "head.html" %}
 
     {% if recipe is not none %}
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
-
         <script>
             clipRecipe = function() {
                 $.ajax("/api/add", {
@@ -26,6 +23,8 @@
 </head>
 
 <body>
+    {% include "header.html" %}
+
     {% if recipe is not none %}
         {% include "recipe.html" %}
         <button onclick="javascript: clipRecipe();">Clip</button>
@@ -33,5 +32,7 @@
         Sorry, we couldn't clip that recipe, probably because we don't
         understand how to gather content from {{ url.hostname }}
     {% endif %}
+
+    {% include "footer.html" %}
 </body>
 </html>
